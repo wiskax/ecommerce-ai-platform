@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>直播切片管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 28px;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #334155;
+        }
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #6366f1;
+            background: #f8fafc;
+        }
+        .upload-area .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        .upload-area p {
+            color: #64748b;
+            font-size: 14px;
+        }
+        .upload-area input[type="file"] {
+            display: none;
+        }
+        .file-list {
+            margin-top: 12px;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+        .file-item .name {
+            font-size: 14px;
+            color: #1e293b;
+        }
+        .file-item .status {
+            font-size: 12px;
+            padding: 2px 12px;
+            border-radius: 30px;
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        .file-item .status.done {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .file-item .status.error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #6366f1;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #4f46e5;
+        }
+        .btn-success {
+            background: #22c55e;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #16a34a;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        .btn-warning:hover {
+            background: #d97706;
+        }
+        .btn-outline {
+            background: transparent;
+            color: #6366f1;
+            border: 1px solid #6366f1;
+        }
+        .btn-outline:hover {
+            background: #eef2ff;
+        }
+        .btn-sm {
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+        .segments-list {
+            margin-top: 12px;
+        }
+        .segment-item {
+            display: flex;
+            flex-direction: column;
+            padding: 14px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .segment-item .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .segment-item .info {
+            font-size: 14px;
+            color: #1e293b;
+        }
+        .segment-item .info span {
+            color: #64748b;
+            margin: 0 6px;
+        }
+        .segment-item .review-section {
+            margin-top: 10px;
+            padding: 12px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .segment-item .review-section label {
+            font-size: 13px;
+            color: #475569;
+        }
+        .segment-item .review-section input {
+            width: 70px;
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 13px;
+            text-align: center;
+        }
+        .segment-item .review-section .btn {
+            padding: 4px 14px;
+            font-size: 12px;
+        }
+        .segment-item .video-preview-container {
+            margin-top: 10px;
+            display: none;
+        }
+        .segment-item .video-preview-container.active {
+            display: block;
+        }
+        .segment-item .video-preview-container video {
+            width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            background: #0f172a;
+        }
+        .segment-item .video-preview-container .preview-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .segment-item .video-preview-container .preview-controls span {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+        .slice-result-box {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 8px;
+        }
+        .slice-result-box.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .slice-result-box.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .slice-result-box .path {
+            font-size: 12px;
+            color: #475569;
+            word-break: break-all;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .badge-approved {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .slices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .slice-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .slice-card .title {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        .slice-card .meta {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .slice-card .meta span {
+            margin-right: 12px;
+        }
+        .slice-card .path {
+            font-size: 11px;
+            color: #64748b;
+            word-break: break-all;
+        }
+        .time-range-display {
+            font-size: 13px;
+            color: #1e293b;
+            background: #e2e8f0;
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📹 直播切片管理</h1>
+
+        <!-- 上传区域 -->
+        <div class="card">
+            <h2>📤 上传视频</h2>
+            <div class="upload-area" id="uploadArea">
+                <div class="icon">📁</div>
+                <p>点击选择视频文件 (MP4 / MOV / AVI)</p>
+                <input type="file" id="videoInput" accept="video/*" />
+            </div>
+            <div class="file-list" id="videoList"></div>
+        </div>
+
+        <!-- 检测 + 切片 -->
+        <div class="grid-2">
+            <div class="card">
+                <h2>🔍 AI 检测商品片段</h2>
+                <p style="color:#64748b;font-size:14px;margin-bottom:12px;">选择已上传的视频，AI 自动检测商品介绍片段</p>
+                <select id="videoSelect" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;margin-bottom:12px;">
+                    <option value="">-- 请先上传视频 --</option>
+                </select>
+                <button class="btn btn-primary" id="detectBtn">🔍 检测片段</button>
+                <div class="segments-list" id="segmentsList"></div>
+            </div>
+
+            <div class="card">
+                <h2>✂️ 切片生成</h2>
+                <p style="color:#64748b;font-size:14px;margin-bottom:12px;">检测到片段后，点击切片生成视频</p>
+                <div id="sliceResult"></div>
+                <div id="slicesList"></div>
+            </div>
+        </div>
+
+        <!-- 已生成的切片 -->
+        <div class="card">
+            <h2>📂 已生成的切片 <span style="font-size:14px;font-weight:400;color:#64748b;">（人工审核调整）</span></h2>
+            <div id="allSlices">
+                <div style="color:#64748b;font-size:14px;">💡 切片生成后会自动显示在这里</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8003';
+        let currentSegments = [];
+        let currentFilePath = '';
+
+        // ========== 上传视频 ==========
+        document.getElementById('uploadArea').addEventListener('click', () => {
+            document.getElementById('videoInput').click();
+        });
+
+        document.getElementById('videoInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const list = document.getElementById('videoList');
+            const itemId = 'upload_' + Date.now();
+            list.innerHTML += `
+                <div class="file-item" id="${itemId}">
+                    <span class="name">📹 ${file.name}</span>
+                    <span class="status">⏳ 上传中...</span>
+                </div>
+            `;
+
+            try {
+                const res = await fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                const el = document.getElementById(itemId);
+                if (res.ok) {
+                    el.querySelector('.status').textContent = '✅ 已上传';
+                    el.querySelector('.status').className = 'status done';
+                    
+                    const select = document.getElementById('videoSelect');
+                    const option = document.createElement('option');
+                    option.value = data.file_path;
+                    option.textContent = file.name;
+                    select.appendChild(option);
+                    select.value = data.file_path;
+                    currentFilePath = data.file_path;
+                } else {
+                    el.querySelector('.status').textContent = '❌ 上传失败';
+                    el.querySelector('.status').className = 'status error';
+                }
+            } catch (err) {
+                const el = document.getElementById(itemId);
+                el.querySelector('.status').textContent = '❌ 网络错误';
+                el.querySelector('.status').className = 'status error';
+            }
+        });
+
+        // ========== 检测片段 ==========
+        document.getElementById('detectBtn').addEventListener('click', async () => {
+            const select = document.getElementById('videoSelect');
+            const filePath = select.value;
+            if (!filePath) {
+                alert('请先上传并选择视频');
+                return;
+            }
+            currentFilePath = filePath;
+
+            const list = document.getElementById('segmentsList');
+            list.innerHTML = '<div style="color:#64748b;font-size:14px;">⏳ 检测中...</div>';
+
+            try {
+                const res = await fetch(`${API_BASE}/detect_products`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ file_path: filePath })
+                });
+                const data = await res.json();
+
+                if (data.segments && data.segments.length > 0) {
+                    currentSegments = data.segments;
+                    let html = '';
+                    data.segments.forEach((seg, i) => {
+                        html += `
+                            <div class="segment-item" id="seg_${i}">
+                                <div class="row">
+                                    <span class="info">
+                                        🏷️ ${seg.product_id}
+                                        <span>⏱️ <span class="start-display">${seg.start}</span>s - <span class="end-display">${seg.end}</span>s</span>
+                                    </span>
+                                    <div>
+                                        <button class="btn btn-outline btn-sm" onclick="togglePreview(${i})">👁️ 预览</button>
+                                    </div>
+                                </div>
+                                <div class="review-section">
+                                    <label>开始</label>
+                                    <input type="number" class="review-start" value="${seg.start}" step="0.5" />
+                                    <label>结束</label>
+                                    <input type="number" class="review-end" value="${seg.end}" step="0.5" />
+                                    <span class="time-range-display" id="timeDisplay_${i}">${seg.start}s - ${seg.end}s</span>
+                                    <button class="btn btn-success btn-sm" onclick="sliceWithReview(${i})">✂️ 切片</button>
+                                </div>
+                                <div class="video-preview-container" id="previewContainer_${i}">
+                                    <video id="previewVideo_${i}" controls></video>
+                                    <div class="preview-controls">
+                                        <button class="btn btn-primary btn-sm" onclick="playPreview(${i})">▶️ 播放</button>
+                                        <button class="btn btn-warning btn-sm" onclick="pausePreview(${i})">⏸️ 暂停</button>
+                                        <span id="timeInfo_${i}">0.0s / 0.0s</span>
+                                        <span style="font-size:12px;color:#64748b;">当前预览范围: <span id="rangeInfo_${i}">${seg.start}s - ${seg.end}s</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    list.innerHTML = html;
+                    
+                    // 绑定输入事件，实时更新时间显示
+                    document.querySelectorAll('.segment-item').forEach((item, idx) => {
+                        const startInput = item.querySelector('.review-start');
+                        const endInput = item.querySelector('.review-end');
+                        const display = document.getElementById(`timeDisplay_${idx}`);
+                        const rangeInfo = document.getElementById(`rangeInfo_${idx}`);
+                        
+                        const updateTime = () => {
+                            const s = parseFloat(startInput.value) || 0;
+                            const e = parseFloat(endInput.value) || 0;
+                            display.textContent = `${s}s - ${e}s`;
+                            if (rangeInfo) rangeInfo.textContent = `${s}s - ${e}s`;
+                            if (currentSegments[idx]) {
+                                currentSegments[idx].start = s;
+                                currentSegments[idx].end = e;
+                            }
+                            updatePreviewRange(idx);
+                        };
+                        startInput.addEventListener('input', updateTime);
+                        endInput.addEventListener('input', updateTime);
+                    });
+                } else {
+                    list.innerHTML = '<div style="color:#64748b;font-size:14px;">未检测到商品片段</div>';
+                }
+            } catch (err) {
+                list.innerHTML = '<div style="color:#ef4444;font-size:14px;">❌ 检测失败</div>';
+            }
+        });
+
+        // ========== 切换预览 ==========
+        window.togglePreview = (index) => {
+            const container = document.getElementById(`previewContainer_${index}`);
+            const video = document.getElementById(`previewVideo_${index}`);
+            
+            if (container.classList.contains('active')) {
+                container.classList.remove('active');
+                if (video) { video.pause(); video.src = ''; }
+                return;
+            }
+            
+            container.classList.add('active');
+            
+            if (currentFilePath) {
+                const fileName = currentFilePath.replace(/\\/g, '/').split('/').pop();
+                const videoUrl = `/live_videos/${fileName}`;
+                video.src = videoUrl;
+                video.load();
+                console.log('🎬 加载视频:', videoUrl);
+            }
+            
+            const item = document.getElementById(`seg_${index}`);
+            const startInput = item.querySelector('.review-start');
+            const endInput = item.querySelector('.review-end');
+            const start = parseFloat(startInput.value) || 0;
+            const end = parseFloat(endInput.value) || 0;
+            
+            video.onloadedmetadata = () => {
+                video.currentTime = start;
+                updatePreviewRange(index);
+            };
+            
+            video.ontimeupdate = () => {
+                const info = document.getElementById(`timeInfo_${index}`);
+                if (info) {
+                    info.textContent = `${video.currentTime.toFixed(1)}s / ${video.duration.toFixed(1)}s`;
+                }
+                const endVal = parseFloat(endInput.value) || 0;
+                if (video.currentTime >= endVal) {
+                    video.pause();
+                }
+            };
+        };
+
+        // ========== 更新预览范围 ==========
+        window.updatePreviewRange = (index) => {
+            const item = document.getElementById(`seg_${index}`);
+            if (!item) return;
+            const startInput = item.querySelector('.review-start');
+            const endInput = item.querySelector('.review-end');
+            const rangeInfo = document.getElementById(`rangeInfo_${index}`);
+            if (rangeInfo) {
+                rangeInfo.textContent = `${parseFloat(startInput.value) || 0}s - ${parseFloat(endInput.value) || 0}s`;
+            }
+        };
+
+        // ========== 播放预览 ==========
+        window.playPreview = (index) => {
+            const video = document.getElementById(`previewVideo_${index}`);
+            if (!video) return;
+            
+            const item = document.getElementById(`seg_${index}`);
+            const startInput = item.querySelector('.review-start');
+            const endInput = item.querySelector('.review-end');
+            const start = parseFloat(startInput.value) || 0;
+            const end = parseFloat(endInput.value) || 0;
+            
+            video.currentTime = start;
+            video.play();
+            
+            const checkEnd = () => {
+                if (video.currentTime >= end) {
+                    video.pause();
+                    video.removeEventListener('timeupdate', checkEnd);
+                }
+            };
+            video.addEventListener('timeupdate', checkEnd);
+        };
+
+        // ========== 暂停预览 ==========
+        window.pausePreview = (index) => {
+            const video = document.getElementById(`previewVideo_${index}`);
+            if (video) video.pause();
+        };
+
+        // ========== 人工审核后切片 ==========
+        window.sliceWithReview = async (index) => {
+            const item = document.getElementById(`seg_${index}`);
+            const startInput = item.querySelector('.review-start');
+            const endInput = item.querySelector('.review-end');
+            const start = parseFloat(startInput.value) || 0;
+            const end = parseFloat(endInput.value) || 0;
+            const productId = currentSegments[index]?.product_id || 'unknown';
+
+            if (start >= end) {
+                alert('开始时间必须小于结束时间');
+                return;
+            }
+
+            const btn = item.querySelector('.btn-success');
+            btn.textContent = '⏳ 切片中...';
+            btn.disabled = true;
+
+            const resultDiv = document.getElementById('sliceResult');
+
+            try {
+                const res = await fetch(`${API_BASE}/slice`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        file_path: currentFilePath,
+                        product_id: productId,
+                        start_time: start,
+                        end_time: end
+                    })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    resultDiv.innerHTML = `
+                        <div class="slice-result-box success">
+                            ✅ 切片成功！${productId}
+                            <div class="path">📂 ${data.slice_path}</div>
+                        </div>
+                    `;
+                    loadAllSlices();
+                    item.style.borderColor = '#22c55e';
+                    item.style.borderWidth = '2px';
+                    btn.textContent = '✅ 已切片';
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="slice-result-box error">
+                            ❌ 切片失败: ${data.error || '未知错误'}
+                        </div>
+                    `;
+                    btn.textContent = '✂️ 切片';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `
+                    <div class="slice-result-box error">
+                        ❌ 网络错误
+                    </div>
+                `;
+                btn.textContent = '✂️ 切片';
+                btn.disabled = false;
+            }
+        };
+
+        // ========== 加载所有切片 ==========
+        async function loadAllSlices() {
+            try {
+                const res = await fetch(`${API_BASE}/slices/all`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.slices && data.slices.length > 0) {
+                        let html = '<div class="slices-grid">';
+                        data.slices.forEach(s => {
+                            html += `
+                                <div class="slice-card">
+                                    <div class="title">🏷️ ${s.product_id}</div>
+                                    <div class="meta">
+                                        <span>⏱️ ${s.start || 0}s - ${s.end || 0}s</span>
+                                    </div>
+                                    <div style="margin-top:4px;">
+                                        <span class="badge badge-approved">✅ 已切片</span>
+                                    </div>
+                                    <div class="path" style="margin-top:4px;">${s.slice_path || s.content}</div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        document.getElementById('allSlices').innerHTML = html;
+                    } else {
+                        document.getElementById('allSlices').innerHTML = '<div style="color:#64748b;font-size:14px;">暂无切片</div>';
+                    }
+                }
+            } catch (e) {
+                console.log('加载切片失败:', e);
+            }
+        }
+
+        loadAllSlices();
+    </script>
+</body>
+</html>

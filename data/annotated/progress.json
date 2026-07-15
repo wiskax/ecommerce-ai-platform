@@ -1,0 +1,60 @@
+{
+  "annotations": [
+    {
+      "original": {
+        "user_id": "u1001",
+        "message": "这个商品多少钱？",
+        "time": "2026-07-01 10:00:00",
+        "intent": "price"
+      },
+      "label": "faq",
+      "index": 0,
+      "answer": "e"
+    },
+    {
+      "original": {
+        "user_id": "u1001",
+        "message": "能便宜点吗",
+        "time": "2026-07-01 10:01:00",
+        "intent": "price"
+      },
+      "label": "faq",
+      "index": 1,
+      "answer": "能"
+    },
+    {
+      "original": {
+        "user_id": "u1002",
+        "message": "我要退货",
+        "time": "2026-07-01 10:05:00",
+        "intent": "after_sales"
+      },
+      "label": "faq",
+      "index": 2,
+      "answer": "好"
+    },
+    {
+      "original": {
+        "user_id": "u1003",
+        "message": "物流怎么查",
+        "time": "2026-07-01 10:10:00",
+        "intent": "logistics"
+      },
+      "label": "faq",
+      "index": 3,
+      "answer": "1"
+    },
+    {
+      "original": {
+        "user_id": "u1001",
+        "message": "***是123456",
+        "time": "2026-07-01 10:03:00",
+        "intent": "general"
+      },
+      "label": "faq",
+      "index": 4,
+      "answer": "2"
+    }
+  ],
+  "last_index": 4
+}

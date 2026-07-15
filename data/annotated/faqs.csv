@@ -1,0 +1,6 @@
+question,answer,intent,user_id
+这个商品多少钱？,e,price,u1001
+能便宜点吗,能,price,u1001
+我要退货,好,after_sales,u1002
+物流怎么查,1,logistics,u1003
+***是123456,2,general,u1001
